@@ -2,6 +2,8 @@ const express = require("express");
 const helmet = require("helmet");
 const morgan = require("morgan");
 
+const userRouter = require("./users/userRouter");
+
 const server = express();
 // import custom middleware
 // const validateUserId = require()
@@ -31,5 +33,7 @@ server.get("/", logger(" Logger on /"), (req, res) => {
   // res.send(`<h2>Let's write some middleware!</h2>`);
   res.status(200).json({ message: "logger is on" });
 });
+
+server.use("/api/users", userRouter);
 
 module.exports = server;
