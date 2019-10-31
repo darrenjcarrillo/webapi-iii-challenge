@@ -3,6 +3,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 
 const userRouter = require("./users/userRouter");
+const postRouter = require("./posts/postRouter");
 
 const server = express();
 // import custom middleware
@@ -35,5 +36,6 @@ server.get("/", logger(" Logger on /"), (req, res) => {
 });
 
 server.use("/api/users", userRouter);
+server.use("/api/posts", postRouter);
 
 module.exports = server;
