@@ -2,6 +2,9 @@ const express = require("express");
 
 const router = express.Router();
 const userDb = require("./userDb");
+const postDb = require("../posts/postDb");
+
+/// 1 Done
 
 router.post("/", (req, res) => {
   userDb
@@ -17,8 +20,25 @@ router.post("/", (req, res) => {
     });
 });
 
-// router.post("/:id/posts", validateUserId(), validatePost(), (req, res) => {});
+/// 2
 
+router.post("/:id/posts", validateUserId, validatePost, (req, res) => {
+  const id = req.params.id;
+  userDb
+    .insert(id, req.body)
+    .then(post => {
+      console.log(`Comment Posted`, post);
+      res.status(201).json(post);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({
+        error: "There was an error while saving the comment to the database"
+      });
+    });
+});
+
+/// 3 Done
 router.get("/", (req, res) => {
   userDb
     .get(req.body)
@@ -32,18 +52,13 @@ router.get("/", (req, res) => {
       });
     });
 });
+/// 4 Done
 
 router.get("/:id", validateUserId, (req, res) => {
   userDb
     .getById(req.params.id)
     .then(user => {
-      if (user) {
-        res.status(200).json(user);
-      } else {
-        res.status(404).json({
-          message: "User not found"
-        });
-      }
+      res.status(200).json(user);
     })
     .catch(error => {
       console.log(error);
@@ -53,13 +68,49 @@ router.get("/:id", validateUserId, (req, res) => {
     });
 });
 
-// router.get("/:id/posts", validatePost(), (req, res) => {
+/// 5 DONE
 
-// });
+router.get("/:id/posts", validateUserId, (req, res) => {
+  const { id } = req.params;
+  postDb
+    .getById(id)
+    .then(posts => {
+      res.status(200).json(posts);
+    })
+    .catch(error => {
+      console.log(error);
+      res.status(500).json({
+        message: "Error retrieving the posts"
+      });
+    });
+});
 
-// router.delete("/:id", validateUserId(), (req, res) => {});
+/// 6 DONE
+router.delete("/:id", validateUserId, (req, res) => {
+  const { id } = req.params;
+  userDb.remove(id).then(post => {
+    res.status(200).json({
+      message: `user with id of ${id} deleted`,
+      post
+    });
+  });
+});
 
-// router.put("/:id", validateUserId(), (req, res) => {});
+/// 7 DONE
+router.put("/:id", validateUserId, (req, res) => {
+  const { id } = req.params;
+
+  if (!req.body.name) {
+    res.status(400).json({
+      errorMessage: "Please provide a name."
+    });
+  } else {
+    userDb.update(id, req.body).then(updatePost => {
+      console.log(updatePost);
+      res.status(200).json(updatePost);
+    });
+  }
+});
 
 //custom middleware
 
@@ -86,7 +137,19 @@ function validateUserId(req, res, next) {
 
 function validateUser(req, res, next) {}
 
-function validatePost(req, res, next) {}
+function validatePost(req, res, next) {
+  const posts = req.body;
+  if (!posts.user_id) {
+    res.status(400).json({ message: "missing post data" });
+  } else if (!posts.text) {
+    res.status(400).json({ message: "missing required text field" });
+  } else {
+    // userDb.insert(posts).then(post => {
+    //   post;
+    // });
+    next();
+  }
+}
 
 module.exports = router;
 // module.exports = validateUserId;
