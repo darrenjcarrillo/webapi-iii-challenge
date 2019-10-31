@@ -6,7 +6,7 @@ const postDb = require("../posts/postDb");
 
 /// 1 Done
 
-router.post("/", (req, res) => {
+router.post("/", validateUser, (req, res) => {
   userDb
     .insert(req.body)
     .then(post => {
@@ -22,10 +22,11 @@ router.post("/", (req, res) => {
 
 /// 2
 
-router.post("/:id/posts", validateUserId, validatePost, (req, res) => {
-  const id = req.params.id;
-  userDb
-    .insert(id, req.body)
+router.post("/:id/posts", validateUserId, (req, res) => {
+  const messageInfo = { ...req.body, user_id: req.params.id };
+
+  postDb
+    .insert(messageInfo)
     .then(post => {
       console.log(`Comment Posted`, post);
       res.status(201).json(post);
@@ -72,8 +73,8 @@ router.get("/:id", validateUserId, (req, res) => {
 
 router.get("/:id/posts", validateUserId, (req, res) => {
   const { id } = req.params;
-  postDb
-    .getById(id)
+  userDb
+    .getUserPosts(id, req.body)
     .then(posts => {
       res.status(200).json(posts);
     })
@@ -135,7 +136,20 @@ function validateUserId(req, res, next) {
     });
 }
 
-function validateUser(req, res, next) {}
+function validateUser(req, res, next) {
+  if (!req.body) {
+    res.status(400).json({
+      message: "missing user data"
+    });
+  } else if (!req.body.name) {
+    res.status(400).json({
+      message: "missing required text field"
+    });
+  } else {
+    req.body;
+    next();
+  }
+}
 
 function validatePost(req, res, next) {
   const posts = req.body;
@@ -147,6 +161,7 @@ function validatePost(req, res, next) {
     // userDb.insert(posts).then(post => {
     //   post;
     // });
+    req.body;
     next();
   }
 }
